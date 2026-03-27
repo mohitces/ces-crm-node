@@ -5,11 +5,15 @@ const requireAuth = require('../../middlewares/auth');
 const upload = require('./blog.upload');
 const {
   blogIdParamsSchema,
+  blogSlugParamsSchema,
   createBlogSchema,
   updateBlogSchema,
 } = require('./blog.validation');
 
 const router = express.Router();
+
+router.get('/public', blogController.getPublishedBlogs);
+router.get('/public/:slug', validate(blogSlugParamsSchema, 'params'), blogController.getPublishedBlogBySlug);
 
 router.get('/', requireAuth, blogController.getBlogs);
 router.get('/:id', requireAuth, validate(blogIdParamsSchema, 'params'), blogController.getBlogById);

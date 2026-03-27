@@ -6,6 +6,10 @@ const blogIdParamsSchema = Joi.object({
   id: Joi.string().pattern(objectIdRegex).required(),
 });
 
+const blogSlugParamsSchema = Joi.object({
+  slug: Joi.string().trim().min(1).max(220).required(),
+});
+
 const createBlogSchema = Joi.object({
   title: Joi.string().trim().min(3).max(200).required(),
   slug: Joi.string().trim().max(220).optional(),
@@ -33,6 +37,7 @@ const updateBlogSchema = Joi.object({
 
 module.exports = {
   blogIdParamsSchema,
+  blogSlugParamsSchema,
   createBlogSchema,
   updateBlogSchema,
 };

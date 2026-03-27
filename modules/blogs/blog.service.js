@@ -61,9 +61,18 @@ const removeCover = (coverUrl) => {
 };
 
 const getBlogs = async () => blogRepository.getBlogs();
+const getPublishedBlogs = async () => blogRepository.getPublishedBlogs();
 
 const getBlogById = async (id) => {
   const blog = await blogRepository.getBlogById(id);
+  if (!blog) {
+    throw new AppError('Blog not found', 404);
+  }
+  return blog;
+};
+
+const getPublishedBlogBySlug = async (slug) => {
+  const blog = await blogRepository.getPublishedBlogBySlug(slug);
   if (!blog) {
     throw new AppError('Blog not found', 404);
   }
@@ -161,7 +170,9 @@ const deleteBlog = async (id) => {
 
 module.exports = {
   getBlogs,
+  getPublishedBlogs,
   getBlogById,
+  getPublishedBlogBySlug,
   createBlog,
   updateBlog,
   deleteBlog,

@@ -6,8 +6,18 @@ const getBlogs = asyncHandler(async (req, res) => {
   res.json(blogs);
 });
 
+const getPublishedBlogs = asyncHandler(async (req, res) => {
+  const blogs = await blogService.getPublishedBlogs();
+  res.json(blogs);
+});
+
 const getBlogById = asyncHandler(async (req, res) => {
   const blog = await blogService.getBlogById(req.params.id);
+  res.json(blog);
+});
+
+const getPublishedBlogBySlug = asyncHandler(async (req, res) => {
+  const blog = await blogService.getPublishedBlogBySlug(req.params.slug);
   res.json(blog);
 });
 
@@ -30,7 +40,9 @@ const deleteBlog = asyncHandler(async (req, res) => {
 
 module.exports = {
   getBlogs,
+  getPublishedBlogs,
   getBlogById,
+  getPublishedBlogBySlug,
   createBlog,
   updateBlog,
   deleteBlog,
