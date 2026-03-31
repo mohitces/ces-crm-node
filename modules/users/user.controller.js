@@ -1,5 +1,6 @@
 const userService = require('./user.service');
 const asyncHandler = require('../../utils/asyncHandler');
+const { uploadBuffer } = require('../../utils/cloudinary');
 
 const getUsers = asyncHandler(async (req, res) => {
   const users = await userService.getUsers();
@@ -22,7 +23,11 @@ const uploadProfileImage = asyncHandler(async (req, res) => {
     res.status(400).json({ message: 'Profile image is required.' });
     return;
   }
-  res.status(201).json({ url: `/uploads/users/${file.filename}` });
+  const upload = await uploadBuffer(file.buffer, {
+    folder: 'ces/users',
+    resource_type: 'image',
+  });
+  res.status(201).json({ url: upload.secure_url });
 });
 
 const updateUser = asyncHandler(async (req, res) => {

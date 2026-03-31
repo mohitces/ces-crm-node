@@ -1,7 +1,8 @@
+const path = require('path');
+const dotenv = require('dotenv');
+dotenv.config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
-const path = require('path');
 const connectDB = require('./config/db');
 const userRoutes = require('./modules/users/user.routes');
 const authRoutes = require('./modules/auth/auth.routes');
@@ -15,8 +16,7 @@ const dashboardRoutes = require('./modules/dashboard/dashboard.routes');
 const { ensureDefaultAdmin } = require('./modules/auth/auth.service');
 const notFound = require('./middlewares/notFound');
 const errorHandler = require('./middlewares/errorHandler');
-
-dotenv.config();
+const { ensureConfigured } = require('./utils/cloudinary');
 
 const corsOptions = {
   origin: '*',
@@ -39,6 +39,26 @@ app.use((req, res, next) => {
 });
 app.use(cors(corsOptions));
 app.use(express.json());
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+app.get('/api/health/cloudinary', (req, res) => {
+  try {
+    ensureConfigured();
+    res.json({
+      status: 'ok',
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME || null,
+      apiKeyPresent: Boolean(process.env.CLOUDINARY_API_KEY),
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+});
 
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);

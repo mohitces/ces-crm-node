@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const AppError = require('../../utils/AppError');
 const partnerRepository = require('./partner.repository');
+const { destroyByUrl, isCloudinaryUrl } = require('../../utils/cloudinary');
 
 const toSlug = (value) =>
   value
@@ -24,8 +25,12 @@ const uniqueSlug = async (base, excludeId) => {
   }
 };
 
-const removeFile = (imageUrl, marker) => {
+const removeFile = async (imageUrl, marker) => {
   if (!imageUrl) return;
+  if (isCloudinaryUrl(imageUrl)) {
+    await destroyByUrl(imageUrl);
+    return;
+  }
   const index = imageUrl.indexOf(marker);
   if (index === -1) return;
   const relative = imageUrl.slice(index);
@@ -111,7 +116,7 @@ const updatePartner = async (id, payload) => {
   if (payload.logo !== undefined) {
     const nextLogo = normalizeString(payload.logo) || '';
     if (nextLogo !== existing.logo) {
-      removeFile(existing.logo, '/uploads/partners/logos/');
+      await removeFile(existing.logo, '/uploads/partners/logos/');
     }
     update.logo = nextLogo;
   }
@@ -119,7 +124,7 @@ const updatePartner = async (id, payload) => {
   if (payload.bannerImage !== undefined) {
     const nextBanner = normalizeString(payload.bannerImage) || '';
     if (nextBanner !== existing.bannerImage) {
-      removeFile(existing.bannerImage, '/uploads/partners/banners/');
+      await removeFile(existing.bannerImage, '/uploads/partners/banners/');
     }
     update.bannerImage = nextBanner;
   }
@@ -133,8 +138,8 @@ const deletePartner = async (id) => {
   if (!existing) {
     throw new AppError('Partner not found', 404);
   }
-  removeFile(existing.logo, '/uploads/partners/logos/');
-  removeFile(existing.bannerImage, '/uploads/partners/banners/');
+  await removeFile(existing.logo, '/uploads/partners/logos/');
+  await removeFile(existing.bannerImage, '/uploads/partners/banners/');
   await partnerRepository.deletePartner(id);
 };
 

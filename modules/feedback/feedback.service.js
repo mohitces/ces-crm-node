@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const AppError = require('../../utils/AppError');
 const feedbackRepository = require('./feedback.repository');
+const { destroyByUrl, isCloudinaryUrl } = require('../../utils/cloudinary');
 
 const getFeedback = async () => feedbackRepository.getFeedback();
 
@@ -29,8 +30,12 @@ const getPublicFeedback = async () => {
   return source.map((item) => toPublicDto(item));
 };
 
-const removeProfileImage = (imageUrl) => {
+const removeProfileImage = async (imageUrl) => {
   if (!imageUrl) return;
+  if (isCloudinaryUrl(imageUrl)) {
+    await destroyByUrl(imageUrl);
+    return;
+  }
   const marker = '/uploads/feedback/';
   const index = imageUrl.indexOf(marker);
   if (index === -1) return;
@@ -60,7 +65,7 @@ const updateFeedback = async (id, payload) => {
   if (typeof payload.profileImage === 'string') {
     const nextImage = payload.profileImage.trim();
     if (nextImage !== existing.profileImage) {
-      removeProfileImage(existing.profileImage);
+      await removeProfileImage(existing.profileImage);
     }
     payload.profileImage = nextImage;
   }
@@ -77,7 +82,7 @@ const deleteFeedback = async (id) => {
   if (!existing) {
     throw new AppError('Feedback not found', 404);
   }
-  removeProfileImage(existing.profileImage);
+  await removeProfileImage(existing.profileImage);
   const deleted = await feedbackRepository.deleteFeedback(id);
   if (!deleted) {
     throw new AppError('Feedback not found', 404);

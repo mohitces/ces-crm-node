@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const blogRepository = require('./blog.repository');
 const AppError = require('../../utils/AppError');
+const { destroyByUrl, isCloudinaryUrl } = require('../../utils/cloudinary');
 
 const toSlug = (value) =>
   value
@@ -24,7 +25,11 @@ const uniqueSlug = async (base, excludeId) => {
   }
 };
 
-const buildCoverUrl = (file) => (file ? `/uploads/blogs/${file.filename}` : '');
+const buildCoverUrl = (file) => {
+  if (!file) return '';
+  if (typeof file === 'string') return file;
+  return file.secure_url || file.url || '';
+};
 
 const parseList = (value) => {
   if (!value) return [];
@@ -52,8 +57,12 @@ const parseList = (value) => {
   return [];
 };
 
-const removeCover = (coverUrl) => {
+const removeCover = async (coverUrl) => {
   if (!coverUrl) return;
+  if (isCloudinaryUrl(coverUrl)) {
+    await destroyByUrl(coverUrl);
+    return;
+  }
   const filePath = path.join(__dirname, '../../', coverUrl);
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
@@ -132,7 +141,7 @@ const updateBlog = async (id, payload, file) => {
   }
 
   if (payload.clearCover === 'true' || payload.clearCover === true) {
-    removeCover(existing.coverImageUrl);
+    await removeCover(existing.coverImageUrl);
     update.coverImageUrl = '';
   }
 
@@ -142,7 +151,7 @@ const updateBlog = async (id, payload, file) => {
   }
 
   if (file) {
-    removeCover(existing.coverImageUrl);
+    await removeCover(existing.coverImageUrl);
     update.coverImageUrl = buildCoverUrl(file);
   }
 
@@ -164,7 +173,7 @@ const deleteBlog = async (id) => {
     throw new AppError('Blog not found', 404);
   }
 
-  removeCover(existing.coverImageUrl);
+  await removeCover(existing.coverImageUrl);
   await blogRepository.deleteBlog(id);
 };
 

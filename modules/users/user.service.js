@@ -3,6 +3,7 @@ const path = require('path');
 const userRepository = require('./user.repository');
 const AppError = require('../../utils/AppError');
 const bcrypt = require('bcryptjs');
+const { destroyByUrl, isCloudinaryUrl } = require('../../utils/cloudinary');
 
 const DEFAULT_USER_PASSWORD = process.env.DEFAULT_USER_PASSWORD || 'Pa$$w0rd';
 const DEFAULT_ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || 'admin@ces-pl.com';
@@ -110,7 +111,7 @@ const updateUser = async (id, payload) => {
   if (typeof payload.profileImage === 'string') {
     payload.profileImage = payload.profileImage.trim();
     if (payload.profileImage !== existing.profileImage) {
-      removeProfileImage(existing.profileImage);
+      await removeProfileImage(existing.profileImage);
     }
   }
 
@@ -128,12 +129,16 @@ const deleteUser = async (id) => {
   if (!existing) {
     throw new AppError('User not found', 404);
   }
-  removeProfileImage(existing.profileImage);
+  await removeProfileImage(existing.profileImage);
   await userRepository.deleteUser(id);
 };
 
-const removeProfileImage = (imageUrl) => {
+const removeProfileImage = async (imageUrl) => {
   if (!imageUrl) return;
+  if (isCloudinaryUrl(imageUrl)) {
+    await destroyByUrl(imageUrl);
+    return;
+  }
   const marker = '/uploads/users/';
   const index = imageUrl.indexOf(marker);
   if (index === -1) return;

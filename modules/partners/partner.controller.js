@@ -1,5 +1,6 @@
 const asyncHandler = require('../../utils/asyncHandler');
 const partnerService = require('./partner.service');
+const { uploadBuffer } = require('../../utils/cloudinary');
 
 const getPartners = asyncHandler(async (req, res) => {
   const partners = await partnerService.getPartners();
@@ -27,7 +28,11 @@ const uploadLogo = asyncHandler(async (req, res) => {
     res.status(400).json({ message: 'Logo is required.' });
     return;
   }
-  res.status(201).json({ url: `/uploads/partners/logos/${file.filename}` });
+  const upload = await uploadBuffer(file.buffer, {
+    folder: 'ces/partners/logos',
+    resource_type: 'image',
+  });
+  res.status(201).json({ url: upload.secure_url });
 });
 
 const uploadBanner = asyncHandler(async (req, res) => {
@@ -36,7 +41,11 @@ const uploadBanner = asyncHandler(async (req, res) => {
     res.status(400).json({ message: 'Banner image is required.' });
     return;
   }
-  res.status(201).json({ url: `/uploads/partners/banners/${file.filename}` });
+  const upload = await uploadBuffer(file.buffer, {
+    folder: 'ces/partners/banners',
+    resource_type: 'image',
+  });
+  res.status(201).json({ url: upload.secure_url });
 });
 
 const updatePartner = asyncHandler(async (req, res) => {

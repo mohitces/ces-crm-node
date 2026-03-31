@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const caseStudyRepository = require('./case-study.repository');
 const AppError = require('../../utils/AppError');
+const { destroyByUrl, isCloudinaryUrl } = require('../../utils/cloudinary');
 
 const toSlug = (value) =>
   value
@@ -24,7 +25,11 @@ const uniqueSlug = async (base, excludeId) => {
   }
 };
 
-const buildAssetUrl = (file) => (file ? `/uploads/case-studies/${file.filename}` : '');
+const buildAssetUrl = (file) => {
+  if (!file) return '';
+  if (typeof file === 'string') return file;
+  return file.secure_url || file.url || '';
+};
 
 const parseJson = (value) => {
   if (!value) return null;
@@ -58,8 +63,12 @@ const parseLines = (value) => {
   return [];
 };
 
-const removeAsset = (assetUrl) => {
+const removeAsset = async (assetUrl) => {
   if (!assetUrl) return;
+  if (isCloudinaryUrl(assetUrl)) {
+    await destroyByUrl(assetUrl);
+    return;
+  }
   const filePath = path.join(__dirname, '../../', assetUrl);
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
@@ -104,11 +113,11 @@ const buildPayload = async (payload, files, existing) => {
   const mediaImages = [...mediaUrls, ...mediaFiles.map((file) => buildAssetUrl(file))];
 
   if (existing && logoFile) {
-    removeAsset(existing.clientLogo);
+    await removeAsset(existing.clientLogo);
   }
 
   if (existing && bannerFile) {
-    removeAsset(existing.bannerImage);
+    await removeAsset(existing.bannerImage);
   }
 
   return {
@@ -165,9 +174,11 @@ const deleteCaseStudy = async (id) => {
   const existing = await caseStudyRepository.getCaseStudyById(id);
   if (!existing) throw new AppError('Case study not found', 404);
 
-  removeAsset(existing.clientLogo);
-  removeAsset(existing.bannerImage);
-  (existing.media?.images || []).forEach((image) => removeAsset(image));
+  await removeAsset(existing.clientLogo);
+  await removeAsset(existing.bannerImage);
+  for (const image of existing.media?.images || []) {
+    await removeAsset(image);
+  }
 
   await caseStudyRepository.deleteCaseStudy(id);
 };
