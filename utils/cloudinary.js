@@ -2,21 +2,30 @@ const cloudinary = require('cloudinary').v2;
 
 let configured = false;
 
+const normalizeEnv = (value) => {
+  if (typeof value !== 'string') return value;
+  return value.trim().replace(/^['"]|['"]$/g, '');
+};
+
 const ensureConfigured = () => {
   if (configured) return;
   const missing = [];
-  if (!process.env.CLOUDINARY_CLOUD_NAME) missing.push('CLOUDINARY_CLOUD_NAME');
-  if (!process.env.CLOUDINARY_API_KEY) missing.push('CLOUDINARY_API_KEY');
-  if (!process.env.CLOUDINARY_API_SECRET) missing.push('CLOUDINARY_API_SECRET');
+  const cloudName = normalizeEnv(process.env.CLOUDINARY_CLOUD_NAME);
+  const apiKey = normalizeEnv(process.env.CLOUDINARY_API_KEY);
+  const apiSecret = normalizeEnv(process.env.CLOUDINARY_API_SECRET);
+
+  if (!cloudName) missing.push('CLOUDINARY_CLOUD_NAME');
+  if (!apiKey) missing.push('CLOUDINARY_API_KEY');
+  if (!apiSecret) missing.push('CLOUDINARY_API_SECRET');
   if (missing.length) {
     const error = new Error(`Cloudinary config missing: ${missing.join(', ')}`);
     error.code = 'CLOUDINARY_CONFIG_MISSING';
     throw error;
   }
   cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
     secure: true,
   });
   configured = true;

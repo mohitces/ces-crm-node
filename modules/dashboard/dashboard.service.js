@@ -17,7 +17,7 @@ const buildLastDays = (days = 7) => {
 };
 
 const formatDayLabel = (date) => {
-  return ['S', 'M', 'T', 'W', 'T', 'F', 'S'][date.getDay()];
+  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
 };
 
 const formatCount = (value) => {
@@ -64,7 +64,7 @@ const getDashboardData = async () => {
     CaseStudy.find({ status: 'published', createdAt: { $gte: startDate } }, 'createdAt').lean(),
     ClientQuery.find({ createdAt: { $gte: startDate } }, 'createdAt').lean(),
     Testimonial.find({}, 'isActive').lean(),
-    Partner.find({}, 'status').lean(),
+    Partner.find({}, 'status type').lean(),
     Blog.countDocuments(),
     CaseStudy.countDocuments(),
   ]);
@@ -84,6 +84,14 @@ const getDashboardData = async () => {
   const feedbackTotal = feedback.length;
   const partnersActive = partners.filter((item) => item.status === 'active').length;
   const partnersTotal = partners.length;
+  const partnerByType = partners.reduce(
+    (acc, partner) => {
+      const key = partner.type || 'client';
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    },
+    { client: 0, enterprise: 0, startup: 0, technology: 0 },
+  );
 
   const postBars = blogSeries.map((value, idx) => value + caseSeries[idx]);
   const trendA = postBars.map((value, idx) => Math.round(value * 0.6 + (idx % 2 ? 2 : 1)));
@@ -141,8 +149,15 @@ const getDashboardData = async () => {
       caseStudies: { total: totalCaseCount },
       queries: { total: await ClientQuery.countDocuments() },
       feedback: { total: feedbackTotal, active: feedbackActive },
-      partners: { total: partnersTotal, active: partnersActive },
+      partners: { total: partnersTotal, active: partnersActive, byType: partnerByType },
     },
+    socialClicks: [
+      { platform: 'LinkedIn', clicks: 0 },
+      { platform: 'Instagram', clicks: 0 },
+      { platform: 'Facebook', clicks: 0 },
+      { platform: 'X', clicks: 0 },
+      { platform: 'YouTube', clicks: 0 },
+    ],
     charts: {
       totalLikes: {
         labels: dayLabels,
