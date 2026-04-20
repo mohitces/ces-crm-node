@@ -5,8 +5,8 @@ const SOCIAL_PLATFORMS = ['linkedin', 'x', 'facebook', 'instagram', 'youtube'];
 const DEFAULT_SETTINGS = {
   key: 'global',
   socialLinks: SOCIAL_PLATFORMS.map((platform) => ({ platform, url: '' })),
-  technicalSupport: { email: '', phone: '' },
-  enterprisePartnerships: { email: '', phone: '' },
+technicalSupport: { email: '', phone: '+91-0120-6911071' },
+enterprisePartnerships: { email: '', phone: '+91-0120-6911071' },
   businessHours: {
     timezone: 'IST',
     monFri: '',
