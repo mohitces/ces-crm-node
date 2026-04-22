@@ -7,6 +7,7 @@ const connectDB = require('./config/db');
 const userRoutes = require('./modules/users/user.routes');
 const authRoutes = require('./modules/auth/auth.routes');
 const blogRoutes = require('./modules/blogs/blog.routes');
+const commentRoutes = require('./modules/blogs/comment.route');
 const caseStudyRoutes = require('./modules/case-studies/case-study.routes');
 const queryRoutes = require('./modules/queries/query.routes');
 const feedbackRoutes = require('./modules/feedback/feedback.routes');
@@ -63,6 +64,7 @@ app.get('/api/health/cloudinary', (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/blogs', blogRoutes);
+app.use('/api/blogs', commentRoutes);
 app.use('/api/case-studies', caseStudyRoutes);
 app.use('/api/queries', queryRoutes);
 app.use('/api/feedback', feedbackRoutes);
