@@ -10,7 +10,7 @@ const createCommentSchema = Joi.object({
 
 const listCommentsQuerySchema = Joi.object({
   page: Joi.number().integer().min(1).optional(),
-  limit: Joi.number().integer().min(1).max(100).optional(),
+  limit: Joi.number().integer().min(1).max(200).optional(),
 });
 
 const slugParamsSchema = Joi.object({
