@@ -36,6 +36,7 @@ enterprisePartnerships: { email: '', phone: '+91-0120-6911071' },
   ],
   legalContent: 'Legal\n\nPlease add your legal terms and conditions here.',
   privacyContent: 'Privacy Policy\n\nPlease add your privacy policy here.',
+  lifeAtCesContent: null,
 };
 
 const normalizeLinks = (links) => {
@@ -101,6 +102,7 @@ const toDto = (settings) => ({
   locations: settings.locations || [],
   legalContent: settings.legalContent || '',
   privacyContent: settings.privacyContent || '',
+  lifeAtCesContent: settings.lifeAtCesContent || null,
 });
 
 const getSettings = async () => {
@@ -125,13 +127,45 @@ const updateSettings = async (payload) => {
     locations: normalizeLocations(base.locations, payload.locations),
     legalContent: normalizeContent(base.legalContent, payload.legalContent),
     privacyContent: normalizeContent(base.privacyContent, payload.privacyContent),
+    lifeAtCesContent:
+      Object.prototype.hasOwnProperty.call(payload, 'lifeAtCesContent')
+        ? payload.lifeAtCesContent
+        : (base.lifeAtCesContent ?? null),
   };
 
   const saved = await settingsRepository.upsertSettings(update);
   return toDto(saved);
 };
 
+const getLifeAtCesContent = async () => {
+  const settings = await getSettings();
+  return settings.lifeAtCesContent || null;
+};
+
+const updateLifeAtCesContent = async (lifeAtCesContent) => {
+  const existing = await settingsRepository.getSettings();
+  const base = existing ? existing.toObject() : DEFAULT_SETTINGS;
+
+  const update = {
+    key: 'global',
+    socialLinks: normalizeLinks(base.socialLinks),
+    technicalSupport: normalizeContact(base.technicalSupport, base.technicalSupport),
+    enterprisePartnerships: normalizeContact(base.enterprisePartnerships, base.enterprisePartnerships),
+    businessHours: normalizeHours(base.businessHours, base.businessHours),
+    companyStats: normalizeStats(base.companyStats, base.companyStats),
+    locations: normalizeLocations(base.locations, base.locations),
+    legalContent: normalizeContent(base.legalContent, base.legalContent),
+    privacyContent: normalizeContent(base.privacyContent, base.privacyContent),
+    lifeAtCesContent: lifeAtCesContent || null,
+  };
+
+  const saved = await settingsRepository.upsertSettings(update);
+  return toDto(saved).lifeAtCesContent || null;
+};
+
 module.exports = {
   getSettings,
   updateSettings,
+  getLifeAtCesContent,
+  updateLifeAtCesContent,
 };

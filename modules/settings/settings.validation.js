@@ -41,6 +41,7 @@ const updateSettingsSchema = Joi.object({
   locations: Joi.array().items(locationSchema).optional(),
   legalContent: Joi.string().trim().allow('').optional(),
   privacyContent: Joi.string().trim().allow('').optional(),
+  lifeAtCesContent: Joi.object().unknown(true).allow(null).optional(),
 }).min(1);
 
 module.exports = {

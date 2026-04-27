@@ -54,6 +54,7 @@ const settingsSchema = new Schema(
     ],
     legalContent: { type: String, default: '' },
     privacyContent: { type: String, default: '' },
+    lifeAtCesContent: { type: Schema.Types.Mixed, default: null },
   },
   { timestamps: true }
 );
