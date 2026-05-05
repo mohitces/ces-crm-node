@@ -1,3 +1,4 @@
+// test comment for git sync check
 const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config({ path: path.join(__dirname, '.env') });
