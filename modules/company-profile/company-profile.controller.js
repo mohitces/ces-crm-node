@@ -16,8 +16,13 @@ const getSamplePdf = asyncHandler(async (_req, res) => {
   });
 });
 
+const getSmtpHealth = asyncHandler(async (_req, res) => {
+  const result = await companyProfileService.verifySmtpHealth();
+  res.status(result.ok ? 200 : 500).json(result);
+});
+
 module.exports = {
   createCompanyProfileRequest,
   getSamplePdf,
+  getSmtpHealth,
 };
-

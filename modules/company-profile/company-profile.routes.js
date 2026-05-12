@@ -6,7 +6,7 @@ const { createCompanyProfileRequestSchema } = require('./company-profile.validat
 const router = express.Router();
 
 router.get('/sample-pdf', controller.getSamplePdf);
+router.get('/smtp-health', controller.getSmtpHealth);
 router.post('/', validate(createCompanyProfileRequestSchema), controller.createCompanyProfileRequest);
 
 module.exports = router;
-
