@@ -114,8 +114,47 @@ const buildPayload = async (payload, files, existing) => {
   const bannerFile = files?.find((file) => file.fieldname === 'bannerImage') || null;
   const mediaFiles = files?.filter((file) => file.fieldname === 'mediaImages') || [];
 
-  const logoInfo = logoFile ? buildAssetInfo(logoFile) : { url: payload.clientLogoUrl || existing?.clientLogo || '', publicId: payload.clientLogoPublicId || existing?.clientLogoPublicId || '' };
-  const bannerInfo = bannerFile ? buildAssetInfo(bannerFile) : { url: payload.bannerImageUrl || existing?.bannerImage || '', publicId: payload.bannerImagePublicId || existing?.bannerImagePublicId || '' };
+  const logoRemoved = existing && !logoFile && payload.clientLogoUrl === '' && existing.clientLogo;
+  const bannerRemoved = existing && !bannerFile && payload.bannerImageUrl === '' && existing.bannerImage;
+
+  if (logoRemoved) {
+    try {
+      await removeAsset(existing.clientLogo, existing.clientLogoPublicId);
+    } catch (err) {
+      console.error('Failed to remove old client logo:', err.message);
+    }
+  } else if (existing && logoFile) {
+    try {
+      await removeAsset(existing.clientLogo, existing.clientLogoPublicId);
+    } catch (err) {
+      console.error('Failed to remove old client logo:', err.message);
+    }
+  }
+
+  if (bannerRemoved) {
+    try {
+      await removeAsset(existing.bannerImage, existing.bannerImagePublicId);
+    } catch (err) {
+      console.error('Failed to remove old banner image:', err.message);
+    }
+  } else if (existing && bannerFile) {
+    try {
+      await removeAsset(existing.bannerImage, existing.bannerImagePublicId);
+    } catch (err) {
+      console.error('Failed to remove old banner image:', err.message);
+    }
+  }
+
+  const logoInfo = logoFile
+    ? buildAssetInfo(logoFile)
+    : logoRemoved
+      ? { url: '', publicId: '' }
+      : { url: payload.clientLogoUrl || existing?.clientLogo || '', publicId: payload.clientLogoPublicId || existing?.clientLogoPublicId || '' };
+  const bannerInfo = bannerFile
+    ? buildAssetInfo(bannerFile)
+    : bannerRemoved
+      ? { url: '', publicId: '' }
+      : { url: payload.bannerImageUrl || existing?.bannerImage || '', publicId: payload.bannerImagePublicId || existing?.bannerImagePublicId || '' };
 
   const mediaInfos = mediaFiles.map((file) => buildAssetInfo(file));
   const mediaImages = [...mediaUrls, ...mediaInfos.map((file) => file.url)];
@@ -125,12 +164,17 @@ const buildPayload = async (payload, files, existing) => {
       : existing?.mediaPublicIds || [];
   const mediaPublicIds = [...existingPublicIds, ...mediaInfos.map((file) => file.publicId).filter(Boolean)];
 
-  if (existing && logoFile) {
-    await removeAsset(existing.clientLogo, existing.clientLogoPublicId);
-  }
-
-  if (existing && bannerFile) {
-    await removeAsset(existing.bannerImage, existing.bannerImagePublicId);
+  if (existing) {
+    const removedUrls = (existing.media?.images || []).filter((url) => url && !mediaImages.includes(url));
+    for (const removedUrl of removedUrls) {
+      const idx = (existing.media?.images || []).indexOf(removedUrl);
+      const removedPublicId = existing.mediaPublicIds?.[idx];
+      try {
+        await removeAsset(removedUrl, removedPublicId);
+      } catch (err) {
+        console.error('Failed to delete removed gallery image:', removedUrl, err.message);
+      }
+    }
   }
 
   return {
@@ -190,12 +234,26 @@ const deleteCaseStudy = async (id) => {
   const existing = await caseStudyRepository.getCaseStudyById(id);
   if (!existing) throw new AppError('Case study not found', 404);
 
-  await removeAsset(existing.clientLogo, existing.clientLogoPublicId);
-  await removeAsset(existing.bannerImage, existing.bannerImagePublicId);
+  try {
+    await removeAsset(existing.clientLogo, existing.clientLogoPublicId);
+  } catch (err) {
+    console.error('Failed to delete client logo asset:', err.message);
+  }
+
+  try {
+    await removeAsset(existing.bannerImage, existing.bannerImagePublicId);
+  } catch (err) {
+    console.error('Failed to delete banner image asset:', err.message);
+  }
+
   const images = existing.media?.images || [];
   const publicIds = existing.mediaPublicIds || [];
   for (let index = 0; index < images.length; index += 1) {
-    await removeAsset(images[index], publicIds[index]);
+    try {
+      await removeAsset(images[index], publicIds[index]);
+    } catch (err) {
+      console.error('Failed to delete media image asset:', images[index], err.message);
+    }
   }
 
   await caseStudyRepository.deleteCaseStudy(id);
