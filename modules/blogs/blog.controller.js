@@ -1,6 +1,6 @@
 const asyncHandler = require('../../utils/asyncHandler');
 const blogService = require('./blog.service');
-const { uploadImageBuffer } = require('../../utils/cloudinary');
+const { uploadToFileService } = require('../../utils/fileServiceUploader');
 
 const getBlogs = asyncHandler(async (req, res) => {
   const blogs = await blogService.getBlogs();
@@ -25,7 +25,7 @@ const getPublishedBlogBySlug = asyncHandler(async (req, res) => {
 const createBlog = asyncHandler(async (req, res) => {
   const coverImage = req.files?.find((file) => file.fieldname === 'coverImage') || null;
   const uploadedCover = coverImage
-    ? await uploadImageBuffer(coverImage.buffer, { folder: 'ces/blogs' })
+    ? await uploadToFileService(coverImage.buffer, coverImage.originalname, 'ces-pl', 'blogs/covers')
     : null;
   const blog = await blogService.createBlog(req.body, uploadedCover, req.user);
   res.status(201).json(blog);
@@ -34,7 +34,7 @@ const createBlog = asyncHandler(async (req, res) => {
 const updateBlog = asyncHandler(async (req, res) => {
   const coverImage = req.files?.find((file) => file.fieldname === 'coverImage') || null;
   const uploadedCover = coverImage
-    ? await uploadImageBuffer(coverImage.buffer, { folder: 'ces/blogs' })
+    ? await uploadToFileService(coverImage.buffer, coverImage.originalname, 'ces-pl', 'blogs/covers')
     : null;
   const blog = await blogService.updateBlog(req.params.id, req.body, uploadedCover);
   res.json(blog);
@@ -50,8 +50,8 @@ const uploadImage = asyncHandler(async (req, res) => {
   if (!imageFile) {
     return res.status(400).json({ message: 'No image provided' });
   }
-  const uploadedImage = await uploadImageBuffer(imageFile.buffer, { folder: 'ces/blogs/content' });
-  res.json({ url: uploadedImage.secure_url || uploadedImage.url });
+  const uploadedImage = await uploadToFileService(imageFile.buffer, imageFile.originalname, 'ces-pl', 'blogs/content');
+  res.json({ url: uploadedImage.url });
 });
 
 module.exports = {
