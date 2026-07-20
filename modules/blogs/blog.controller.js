@@ -45,6 +45,15 @@ const deleteBlog = asyncHandler(async (req, res) => {
   res.json({ message: 'Blog deleted' });
 });
 
+const uploadImage = asyncHandler(async (req, res) => {
+  const imageFile = req.files?.[0];
+  if (!imageFile) {
+    return res.status(400).json({ message: 'No image provided' });
+  }
+  const uploadedImage = await uploadImageBuffer(imageFile.buffer, { folder: 'ces/blogs/content' });
+  res.json({ url: uploadedImage.secure_url || uploadedImage.url });
+});
+
 module.exports = {
   getBlogs,
   getPublishedBlogs,
@@ -53,4 +62,5 @@ module.exports = {
   createBlog,
   updateBlog,
   deleteBlog,
+  uploadImage,
 };

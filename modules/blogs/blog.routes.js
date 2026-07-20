@@ -26,6 +26,13 @@ router.post(
   validate(createBlogSchema),
   blogController.createBlog
 );
+router.post(
+  '/upload',
+  requireAuth,
+  requireRole('admin', 'editor'),
+  upload.any(),
+  blogController.uploadImage
+);
 router.put(
   '/:id',
   requireAuth,
