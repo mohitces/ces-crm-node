@@ -30,7 +30,7 @@ const buildDetailsTableHtml = (payload) => `
   </table>
 `;
 
-const INTERNAL_NOTIFICATION_EMAIL = 'jhanaksharmaaa@gmail.com';
+const INTERNAL_NOTIFICATION_EMAIL = process.env.COMPANY_PROFILE_INTERNAL_EMAIL || process.env.SMTP_USER || '';
 
 const sendViaSmtp = async (payload, pdfPath) => {
   if (!nodemailer) {
@@ -40,11 +40,17 @@ const sendViaSmtp = async (payload, pdfPath) => {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || 587);
   const secure = String(process.env.SMTP_SECURE || 'false') === 'true';
+  const rejectUnauthorized = String(process.env.SMTP_TLS_REJECT_UNAUTHORIZED || 'true') === 'true';
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
   const from = process.env.COMPANY_PROFILE_FROM_EMAIL || user;
-  if (!host || !user || !pass || !from) {
-    return { emailed: false, message: 'SMTP is not configured on the server.', emailedToUser: false, emailedToInfo: false };
+  if (!host || !user || !pass || !from || !INTERNAL_NOTIFICATION_EMAIL) {
+    return {
+      emailed: false,
+      message: 'SMTP is not configured on the server. Required: SMTP_HOST, SMTP_USER, SMTP_PASS, COMPANY_PROFILE_FROM_EMAIL, COMPANY_PROFILE_INTERNAL_EMAIL.',
+      emailedToUser: false,
+      emailedToInfo: false,
+    };
   }
   if (pass === 'YOUR_MAIL_PASSWORD_OR_APP_PASSWORD') {
     return {
@@ -63,6 +69,7 @@ const sendViaSmtp = async (payload, pdfPath) => {
     port,
     secure,
     auth: { user, pass },
+    tls: { rejectUnauthorized },
   });
 
   const html = `
@@ -152,12 +159,14 @@ const verifySmtpHealth = async () => {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || 587);
   const secure = String(process.env.SMTP_SECURE || 'false') === 'true';
+  const rejectUnauthorized = String(process.env.SMTP_TLS_REJECT_UNAUTHORIZED || 'true') === 'true';
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
   const from = process.env.COMPANY_PROFILE_FROM_EMAIL || user;
+  const internal = process.env.COMPANY_PROFILE_INTERNAL_EMAIL || user;
 
-  if (!host || !user || !pass || !from) {
-    return { ok: false, message: 'SMTP is not fully configured. Required: SMTP_HOST, SMTP_USER, SMTP_PASS, COMPANY_PROFILE_FROM_EMAIL.' };
+  if (!host || !user || !pass || !from || !internal) {
+    return { ok: false, message: 'SMTP is not fully configured. Required: SMTP_HOST, SMTP_USER, SMTP_PASS, COMPANY_PROFILE_FROM_EMAIL, COMPANY_PROFILE_INTERNAL_EMAIL.' };
   }
 
   const transporter = nodemailer.createTransport({
@@ -165,6 +174,7 @@ const verifySmtpHealth = async () => {
     port,
     secure,
     auth: { user, pass },
+    tls: { rejectUnauthorized },
   });
 
   try {
