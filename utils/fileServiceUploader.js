@@ -1,12 +1,10 @@
 const FormData = require('form-data');
-// Using native dynamic import for node-fetch to support CommonJS safely, or standard fetch in Node 18+
+const fetchFn = require('node-fetch');
+
 const uploadToFileService = async (buffer, originalname, project = 'default', folder = 'misc') => {
   try {
     const form = new FormData();
-    form.append('image', buffer, originalname || 'image.jpg');
-
-    // Use global fetch if available (Node 18+)
-    const fetchFn = globalThis.fetch || (await import('node-fetch')).default;
+    form.append('image', buffer, { filename: originalname || 'image.jpg' });
 
     const fileServiceUrlBase = process.env.FILE_SERVICE_URL || 'http://localhost:4000/api/upload';
     const fileServiceUrl = `${fileServiceUrlBase}?project=${encodeURIComponent(project)}&folder=${encodeURIComponent(folder)}`;
@@ -16,7 +14,7 @@ const uploadToFileService = async (buffer, originalname, project = 'default', fo
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
-        // FormData automatically handles the Content-Type boundary in node-fetch
+        ...form.getHeaders()
       },
       body: form
     });

@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+
+set timeout -1
+set password "gN6V5aLNdI69"
+set host "94.136.188.176"
+set user "root"
+
+# SSH and run deployment commands
+spawn ssh -o StrictHostKeyChecking=no $user@$host "cd /var/www/ces-crm-node && git pull origin main && npm install && pm2 restart ces-api"
+expect {
+    "*assword:*" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}
