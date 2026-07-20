@@ -150,7 +150,11 @@ const updateBlog = async (id, payload, file) => {
   }
 
   if (payload.clearCover === 'true' || payload.clearCover === true) {
-    await removeCover(existing.coverImageUrl, existing.coverImagePublicId);
+    try {
+      await removeCover(existing.coverImageUrl, existing.coverImagePublicId);
+    } catch (err) {
+      console.error('Failed to clear blog cover asset:', err.message);
+    }
     update.coverImageUrl = '';
     update.coverImagePublicId = '';
   }
@@ -161,7 +165,11 @@ const updateBlog = async (id, payload, file) => {
   }
 
   if (file) {
-    await removeCover(existing.coverImageUrl, existing.coverImagePublicId);
+    try {
+      await removeCover(existing.coverImageUrl, existing.coverImagePublicId);
+    } catch (err) {
+      console.error('Failed to remove old blog cover asset:', err.message);
+    }
     const coverInfo = buildCoverInfo(file);
     update.coverImageUrl = coverInfo.url;
     update.coverImagePublicId = coverInfo.publicId;
@@ -185,7 +193,12 @@ const deleteBlog = async (id) => {
     throw new AppError('Blog not found', 404);
   }
 
-  await removeCover(existing.coverImageUrl, existing.coverImagePublicId);
+  try {
+    await removeCover(existing.coverImageUrl, existing.coverImagePublicId);
+  } catch (err) {
+    console.error('Failed to delete blog cover asset:', err.message);
+  }
+
   await blogRepository.deleteBlog(id);
 };
 
