@@ -69,7 +69,11 @@ const updateFeedback = async (id, payload) => {
   if (typeof payload.profileImage === 'string') {
     const nextImage = payload.profileImage.trim();
     if (nextImage !== existing.profileImage) {
-      await removeProfileImage(existing.profileImage, existing.profileImagePublicId);
+      try {
+        await removeProfileImage(existing.profileImage, existing.profileImagePublicId);
+      } catch (err) {
+        console.error('Failed to remove old feedback profile image asset:', err.message);
+      }
       payload.profileImagePublicId = payload.profileImagePublicId || '';
     }
     payload.profileImage = nextImage;
@@ -78,7 +82,11 @@ const updateFeedback = async (id, payload) => {
   if (typeof payload.thumbnail === 'string') {
     const nextThumb = payload.thumbnail.trim();
     if (nextThumb !== existing.thumbnail) {
-      await removeProfileImage(existing.thumbnail, existing.thumbnailPublicId);
+      try {
+        await removeProfileImage(existing.thumbnail, existing.thumbnailPublicId);
+      } catch (err) {
+        console.error('Failed to remove old feedback thumbnail asset:', err.message);
+      }
       payload.thumbnailPublicId = payload.thumbnailPublicId || '';
     }
     payload.thumbnail = nextThumb;
@@ -96,8 +104,19 @@ const deleteFeedback = async (id) => {
   if (!existing) {
     throw new AppError('Feedback not found', 404);
   }
-  await removeProfileImage(existing.profileImage, existing.profileImagePublicId);
-  await removeProfileImage(existing.thumbnail, existing.thumbnailPublicId);
+
+  try {
+    await removeProfileImage(existing.profileImage, existing.profileImagePublicId);
+  } catch (err) {
+    console.error('Failed to delete feedback profile image asset:', err.message);
+  }
+
+  try {
+    await removeProfileImage(existing.thumbnail, existing.thumbnailPublicId);
+  } catch (err) {
+    console.error('Failed to delete feedback thumbnail asset:', err.message);
+  }
+
   const deleted = await feedbackRepository.deleteFeedback(id);
   if (!deleted) {
     throw new AppError('Feedback not found', 404);
