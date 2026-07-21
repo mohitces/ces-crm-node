@@ -16,8 +16,14 @@ const getQueryById = asyncHandler(async (req, res) => {
   res.json(query);
 });
 
+const testEmail = asyncHandler(async (_req, res) => {
+  const result = await queryService.testEmail();
+  res.json(result);
+});
+
 module.exports = {
   createQuery,
   getQueries,
   getQueryById,
+  testEmail,
 };
