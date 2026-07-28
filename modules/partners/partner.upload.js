@@ -1,17 +1,18 @@
 const multer = require('multer');
 
 const storage = multer.memoryStorage();
-const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
 
 const upload = multer({
   storage,
   limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (allowedTypes.includes(file.mimetype)) {
+    if (file.mimetype && file.mimetype.startsWith('image/')) {
       cb(null, true);
       return;
     }
-    cb(new Error('Only image files are allowed'));
+    const err = new Error('Only image files are allowed');
+    err.statusCode = 400;
+    cb(err);
   },
 });
 

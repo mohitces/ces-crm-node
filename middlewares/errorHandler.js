@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const errorHandler = (err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
+  let statusCode = err.statusCode || 500;
   let message = err.message || 'Internal Server Error';
 
   if (err.name === 'ValidationError') {
@@ -14,6 +14,13 @@ const errorHandler = (err, req, res, next) => {
 
   if (err.code === 11000) {
     message = 'Duplicate value error';
+  }
+
+  if (err.code && err.code.startsWith('LIMIT_')) {
+    statusCode = 400;
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      message = 'File too large. Maximum size is 50MB.';
+    }
   }
 
   res.status(statusCode).json({
