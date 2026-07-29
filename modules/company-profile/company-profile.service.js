@@ -73,10 +73,26 @@ const sendViaSmtp = async (payload, pdfPath) => {
   });
 
   const html = `
-    <p>Hi ${payload.firstName},</p>
-    <p>Thank you for your interest in CES Tech. Please find your company profile PDF attached.</p>
-    <p>Here are the details you submitted:</p>
-    ${buildDetailsTableHtml(payload)}
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+      <div style="background: linear-gradient(135deg, #0d2b1d, #1a4a2e); padding: 32px 28px 24px; text-align: center;">
+        <div style="font-size: 40px; line-height: 1; margin-bottom: 8px;">🎉</div>
+        <h1 style="color: #2ecc71; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: -0.3px;">You're all set, ${payload.firstName}!</h1>
+      </div>
+      <div style="padding: 28px 28px 32px;">
+        <p style="font-size: 15px; line-height: 1.6; color: #1e293b; margin: 0 0 16px;">
+          Thank you for reaching out to CES Tech. We truly appreciate your interest in our services and solutions. Your request has been successfully received, and we've attached our Company Profile to help you learn more about who we are, what we do, and how we can support your business.
+        </p>
+        <p style="font-size: 15px; line-height: 1.6; color: #1e293b; margin: 0 0 16px;">
+          One of our solution experts will follow up with you shortly to discuss how CES can support your goals.
+        </p>
+        <h3 style="font-size: 14px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin: 24px 0 12px;">Your Details</h3>
+        ${buildDetailsTableHtml(payload)}
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0 16px;">
+        <p style="font-size: 13px; color: #94a3b8; text-align: center; margin: 0;">
+          CES Tech · Building Resilient IT Infrastructure
+        </p>
+      </div>
+    </div>
   `;
 
   await transporter.sendMail({
